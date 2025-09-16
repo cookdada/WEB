@@ -54,10 +54,10 @@ if st.button("Predict"):
     predicted_proba = model.predict_proba(features)[0]
 
     # 提取预测的类别概率
-    probability = predicted_proba[predicted_class] * 100
+    probability = predicted_proba[1] * 100
 
     # 显示预测结果，使用 Matplotlib 渲染指定字体
-    text = f"Based on feature values, predicted possibility of AKI is {probability:.2f}%"
+    text = f"Based on feature values, predicted possibility of emergency cesarean section is {probability:.2f}%"
     fig, ax = plt.subplots(figsize=(8, 1))
     ax.text(
         0.5, 0.5, text,
@@ -69,3 +69,4 @@ if st.button("Predict"):
     ax.axis('off')
     plt.savefig("prediction_text.png", bbox_inches='tight', dpi=300)
     st.image("prediction_text.png")
+
