@@ -1,75 +1,44 @@
 import streamlit as st
 import joblib
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
-# 加载保存的随机森林模型
-model = joblib.load('RF.pkl')
+# 加载保存的逻辑回归模型
+model = joblib.load('lr.pkl')
 
-# 优化后的特征范围定义
-feature_ranges = {
-    "EFW": {"type": "numerical", "min": 2289.0, "max": 4108.0, "default": 3000.0},
-    "Platelet": {"type": "numerical", "min": 105.0, "max": 394.0, "default": 250.0},
-    "ALT": {"type": "numerical", "min": 2.0, "max": 179.0, "default": 30.0},
-    "Macrosomia": {"type": "categorical", "options": [0, 1]},
-    "Bishop": {"type": "numerical", "min": 1.0, "max": 6.0, "default": 3.0},
-    "Parity": {"type": "numerical", "min": 0.0, "max": 3.0, "default": 1.0},
-    "Cervical effacement": {"type": "numerical", "min": 0.0, "max": 3.0, "default": 1.5},
-    "Hgb": {"type": "numerical", "min": 79.0, "max": 145.0, "default": 120.0},
-    "Gravidity": {"type": "numerical", "min": 1.0, "max": 6.0, "default": 3.0},
-    "BMI": {"type": "numerical", "min": 18.5, "max": 36.9, "default": 25.0},
-    "Gestational weight gain": {"type": "numerical", "min": 0.5, "max": 29.6, "default": 15.0},
-    "Fetal station": {"type": "numerical", "min": 0.0, "max": 1.0, "default": 0},
-}
+# 定义预测函数
+def predict_delivery(Gestational_week, Parity, Cervical_position, Gravidity, Fetal_station, Nuchal_cord, Femur_length, Bishop, Fetal_abdominal_circumference, Cervical_effacement):
+    # 将输入数据合并为一个数组
+    input_data = np.array([[Gestational_week, Parity, Cervical_position, Gravidity, Fetal_station, Nuchal_cord, Femur_length, Bishop, Fetal_abdominal_circumference, Cervical_effacement]])
+    
+    # 使用模型进行预测
+    prediction = model.predict(input_data)[0]
+    
+    # 获取概率
+    probability = model.predict_proba(input_data)[0][1]
+    
+    # 输出预测结果和概率
+    return f"Predicted Outcome: {'emergency cesarean section' if prediction == 1 else 'vaginal delivery'}", f"Probability: {probability:.2f}"
 
-# Streamlit 界面
-st.title("Prediction Model")
+# 创建 Streamlit 应用
+st.title("Delivery Outcome Prediction")
 
-# 动态生成输入项
-st.header("Enter the following feature values:")
-feature_values = []
-for feature, properties in feature_ranges.items():
-    if properties["type"] == "numerical":
-        value = st.number_input(
-            label=f"{feature} ({properties['min']} - {properties['max']})",
-            min_value=float(properties["min"]),
-            max_value=float(properties["max"]),
-            value=float(properties["default"]),
-        )
-    elif properties["type"] == "categorical":
-        value = st.selectbox(
-            label=f"{feature} (Select a value)",
-            options=properties["options"],
-        )
-    feature_values.append(value)
+# 获取输入特征
+Gestational_week = st.number_input("Gestational week", value=40)
+Parity = st.number_input("Parity", value=0)
+Cervical_position = st.number_input("Cervical position", value=1)
+Gravidity = st.number_input("Gravidity", value=1)
+Fetal_station = st.number_input("Fetal station", value=0)
+Nuchal_cord = st.number_input("Nuchal cord", value=1)
+Femur_length = st.number_input("Femur length", value=71)
+Bishop = st.number_input("Bishop", value=3)
+Fetal_abdominal_circumference = st.number_input("Fetal abdominal circumference", value=348)
+Cervical_effacement = st.number_input("Cervical effacement", value=1)
 
-# 转换为模型输入格式
-features = np.array([feature_values])
-
-# 预测结果显示
-if st.button("Predict"):
-    # 模型预测
-    predicted_class = model.predict(features)[0]
-    predicted_proba = model.predict_proba(features)[0]
-
-    # 提取预测的类别概率
-    probability = predicted_proba[1] * 100
-
-    # 显示预测结果，使用 Matplotlib 渲染指定字体
-    text = f"Based on feature values, predicted possibility of emergency cesarean section is {probability:.2f}%"
-    fig, ax = plt.subplots(figsize=(8, 1))
-    ax.text(
-        0.5, 0.5, text,
-        fontsize=16,
-        ha='center', va='center',
-        fontname='Times New Roman',
-        transform=ax.transAxes
+# 创建按钮并显示预测结果
+if st.button("Predict Outcome"):
+    outcome, probability = predict_delivery(
+        Gestational_week, Parity, Cervical_position, Gravidity, Fetal_station,
+        Nuchal_cord, Femur_length, Bishop, Fetal_abdominal_circumference, Cervical_effacement
     )
-    ax.axis('off')
-    plt.savefig("prediction_text.png", bbox_inches='tight', dpi=300)
-    st.image("prediction_text.png")
-
-
-
-
+    st.subheader(outcome)
+    st.write(f"Probability: {probability}")
