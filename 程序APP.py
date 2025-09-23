@@ -41,6 +41,7 @@ if st.button("Predict Outcome"):
         Nuchal_cord, Femur_length, Bishop, Fetal_abdominal_circumference, Cervical_effacement
     )
     st.subheader(outcome)
-    st.write(f"emergency cesarean sectio: {probability}")
+    st.write(f"emergency cesarean sectio {probability}")
+
 
 
